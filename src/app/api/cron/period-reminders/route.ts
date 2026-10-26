@@ -6,7 +6,6 @@ import { PeriodRecordModel } from "@/models/PeriodRecord";
 import { CycleSettingsModel } from "@/models/CycleSettings";
 import { ReminderLogModel } from "@/models/ReminderLog";
 import { calculateCyclePredictions } from "@/lib/period-calculator/engine";
-import { sendPeriodReminderEmail } from "@/lib/email/resend";
 import { toDateString, differenceInCalendarDaysSafe } from "@/lib/utils/date";
 
 export async function GET(req: NextRequest) {
@@ -112,27 +111,12 @@ async function handleCronReminders(req: NextRequest) {
               { upsert: true, new: true }
             );
 
-            // Send email
-            const emailResult = await sendPeriodReminderEmail({
-              to: user.email,
-              name: user.name || "Friend",
-              predictedDate: prediction.predictedStartDate,
-              daysRemaining: offset,
-              discreetMode: setting.discreetMode,
-            });
-
-            if (emailResult.success) {
-              logDoc.status = "sent";
-              logDoc.sentAt = new Date();
-              logDoc.providerMessageId = emailResult.messageId;
-              await logDoc.save();
-              results.sent++;
-            } else {
-              logDoc.status = "failed";
-              logDoc.errorMessage = emailResult.error || "Send failure";
-              await logDoc.save();
-              results.failed++;
-            }
+            // Record in-app notification readiness
+            logDoc.status = "sent";
+            logDoc.sentAt = new Date();
+            logDoc.providerMessageId = "in_app_reminder";
+            await logDoc.save();
+            results.sent++;
           }
         }
       } catch (userErr) {

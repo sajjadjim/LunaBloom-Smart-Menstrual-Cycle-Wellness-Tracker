@@ -416,10 +416,10 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between p-4 rounded-2xl bg-pink-50/60 dark:bg-pink-950/40 border border-pink-100 dark:border-pink-900/40">
             <div>
               <span className="text-sm font-bold text-[#3F243A] dark:text-[#FCE7F3] block">
-                Enable Automatic Period Reminders
+                Enable In-App Period Reminders 🌸
               </span>
               <span className="text-xs text-muted-foreground">
-                Receive an email before your next estimated period starts so you can prepare.
+                Display preparation reminders right on your dashboard and cycle calendar before your estimated period starts.
               </span>
             </div>
             <input
@@ -434,7 +434,7 @@ export default function SettingsPage() {
             <div className="space-y-4 pt-2">
               <div>
                 <label className="text-xs font-bold text-[#BE185D] block mb-2">
-                  When would you like to be notified?
+                  When would you like to see reminders?
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
@@ -465,10 +465,10 @@ export default function SettingsPage() {
               <div className="p-4 rounded-2xl bg-pink-50/60 dark:bg-pink-950/40 border border-pink-100 dark:border-pink-900/40 flex items-center justify-between">
                 <div>
                   <span className="text-xs font-bold text-[#3F243A] dark:text-[#FCE7F3] block">
-                    Discreet Notification Mode
+                    Discreet Reminder Mode
                   </span>
                   <span className="text-[11px] text-muted-foreground">
-                    Removes private words from email subjects (e.g. &ldquo;Gentle wellness reminder from LunaBloom&rdquo;).
+                    Softens notification phrasing (e.g. &ldquo;Gentle wellness reminder from LunaBloom&rdquo;).
                   </span>
                 </div>
                 <input
@@ -477,27 +477,6 @@ export default function SettingsPage() {
                   onChange={(e) => setDiscreetMode(e.target.checked)}
                   className="w-5 h-5 accent-[#BE185D]"
                 />
-              </div>
-
-              {/* Live Test Trigger */}
-              <div className="p-4 rounded-2xl border border-dashed border-pink-300 dark:border-pink-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <span className="text-xs font-bold text-[#BE185D] block">
-                    Verify Your Email Delivery
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">
-                    Send an immediate test notification to {user?.email || "your address"}.
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSendTestEmail}
-                  disabled={sendingTest}
-                  className="px-4 py-2 rounded-xl bg-pink-100 dark:bg-pink-950 text-[#BE185D] dark:text-[#F472B6] hover:bg-pink-200 text-xs font-semibold flex items-center gap-1.5 transition-all"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{sendingTest ? "Sending..." : "Send Test Email"}</span>
-                </button>
               </div>
             </div>
           )}

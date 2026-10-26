@@ -107,13 +107,12 @@ export default function ProfileSetupPage() {
   const handleFinish = async () => {
     setSubmitting(true);
     try {
-      // Determine offsets
+      // Determine offsets for in-app reminders
       let reminderOffsets = [2];
-      let emailEnabled = true;
+      let emailEnabled = false;
       if (reminderChoice === "3") reminderOffsets = [3];
       else if (reminderChoice === "both") reminderOffsets = [2, 3];
       else if (reminderChoice === "none") {
-        emailEnabled = false;
         reminderOffsets = [];
       }
 
@@ -508,19 +507,19 @@ export default function ProfileSetupPage() {
           >
             <div>
               <h2 className="text-2xl font-bold text-[#BE185D] dark:text-[#F472B6]">
-                Gentle Email Reminders 💌
+                Gentle In-App Reminders 🌸
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Would you like a reminder before your next predicted period so you can prepare comfortably?
+                Choose when you would like advance wellness notices on your dashboard before your next predicted cycle starts.
               </p>
             </div>
 
             <div className="space-y-3">
               {[
-                { id: "both", label: "Both 2 and 3 days before (Recommended)", desc: "Receive gentle notice on day 3 and a quick check-in on day 2." },
-                { id: "3", label: "3 days before", desc: "Allows ample time to prepare products and clothing." },
+                { id: "both", label: "Both 2 and 3 days before (Recommended)", desc: "Receive gentle dashboard notice on day 3 and a preparation check-in on day 2." },
+                { id: "3", label: "3 days before", desc: "Allows ample time to prepare essentials, checklists, and comfortable clothing." },
                 { id: "2", label: "2 days before", desc: "A simple, timely reminder right before your predicted period." },
-                { id: "none", label: "No email reminders", desc: "You prefer to check the dashboard manually." },
+                { id: "none", label: "No advance alerts", desc: "You prefer to check the dashboard and cycle calendar manually." },
               ].map((opt) => (
                 <label
                   key={opt.id}

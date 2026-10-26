@@ -21,10 +21,10 @@ export default function FeaturesPage() {
       bullets: ["Average cycle length and duration", "Irregularity and variance alerts", "Leap year and calendar month duration safety"],
     },
     {
-      title: "Automated Email Reminders",
-      desc: "Never be surprised by your period. Receive a gentle, supportive email 2 or 3 days before your predicted cycle begins.",
+      title: "In-App Wellness Reminders",
+      desc: "Never be caught off-guard. Receive soft, timely advance alerts right on your dashboard and cycle calendar 2 or 3 days beforehand.",
       icon: Mail,
-      bullets: ["Opt-in consent control", "Discreet notification subject mode", "Idempotent delivery with Resend API"],
+      bullets: ["Customizable 2 or 3 day advance notices", "Discreet notification wording mode", "Instant dashboard comfort suggestions"],
     },
     {
       title: "Daily Mood & Emotion Tracking",

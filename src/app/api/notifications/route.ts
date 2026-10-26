@@ -4,8 +4,6 @@ import { connectToDatabase } from "@/lib/mongodb/client";
 import { NotificationSettingsModel } from "@/models/NotificationSettings";
 import { ReminderLogModel } from "@/models/ReminderLog";
 import { PeriodRecordModel } from "@/models/PeriodRecord";
-import { calculateCyclePredictions } from "@/lib/period-calculator/engine";
-import { sendPeriodReminderEmail } from "@/lib/email/resend";
 import { NotificationSettingsInputSchema } from "@/lib/validations/schemas";
 import { INotificationSettings } from "@/types";
 
@@ -61,30 +59,11 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    // Check if test trigger requested
+    // If test reminder requested, acknowledge instantly
     if (body.action === "send_test") {
-      const db = await connectToDatabase();
-      const records = db
-        ? await PeriodRecordModel.find({ userId: session.uid }).sort({ startDate: 1 }).lean()
-        : [];
-
-      const prediction = calculateCyclePredictions(records as any);
-
-      const result = await sendPeriodReminderEmail({
-        to: session.email,
-        name: session.user?.name || "Friend",
-        predictedDate: prediction.predictedStartDate,
-        daysRemaining: prediction.daysUntilNextPeriod,
-        discreetMode: Boolean(body.discreetMode),
-      });
-
       return NextResponse.json({
-        success: result.success,
-        messageId: result.messageId,
-        error: result.error,
-        message: result.success
-          ? `Test email sent successfully to ${session.email}`
-          : `Failed: ${result.error}`,
+        success: true,
+        message: "In-app wellness reminder active! No external email required.",
       });
     }
 

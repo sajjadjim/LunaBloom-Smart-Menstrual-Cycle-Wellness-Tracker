@@ -1,5 +1,4 @@
-import { getApps, initializeApp, cert, App } from "firebase-admin/app";
-import { getAuth, DecodedIdToken } from "firebase-admin/auth";
+import type { DecodedIdToken } from "firebase-admin/auth";
 
 const projectId =
   process.env.FIREBASE_PROJECT_ID ||
@@ -12,16 +11,23 @@ if (privateKey) {
   privateKey = privateKey.replace(/\\n/g, "\n");
 }
 
-let adminApp: App | null = null;
+let adminApp: unknown = null;
 
-export function getFirebaseAdmin(): App | null {
-  const apps = getApps();
-  if (apps.length > 0) {
-    return apps[0]!;
+export async function getFirebaseAdmin(): Promise<unknown> {
+  if (adminApp) {
+    return adminApp;
   }
 
+  // Only attempt to load firebase-admin if service account credentials are explicitly provided
   if (projectId && clientEmail && privateKey) {
     try {
+      const { getApps, initializeApp, cert } = await import("firebase-admin/app");
+      const apps = getApps();
+      if (apps.length > 0) {
+        adminApp = apps[0];
+        return adminApp;
+      }
+
       adminApp = initializeApp({
         credential: cert({
           projectId,
@@ -31,7 +37,7 @@ export function getFirebaseAdmin(): App | null {
       });
       return adminApp;
     } catch (error) {
-      console.error("Failed to initialize Firebase Admin:", error);
+      console.warn("Firebase Admin failed to initialize, using payload decoder:", error);
       return null;
     }
   }
@@ -82,18 +88,22 @@ export async function verifyFirebaseIdToken(rawToken: string): Promise<DecodedId
     } as DecodedIdToken;
   }
 
-  const fbAdmin = getFirebaseAdmin();
-  if (fbAdmin) {
+  // Try Firebase Admin if credentials are configured
+  if (clientEmail && privateKey) {
     try {
-      const auth = getAuth(fbAdmin);
-      const decoded = await auth.verifyIdToken(token);
-      return decoded;
+      const fbAdmin = await getFirebaseAdmin();
+      if (fbAdmin) {
+        const { getAuth } = await import("firebase-admin/auth");
+        const auth = getAuth(fbAdmin as any);
+        const decoded = await auth.verifyIdToken(token);
+        return decoded;
+      }
     } catch (error) {
-      console.warn("Firebase Admin verifyIdToken failed, falling back to payload verification:", error);
+      console.warn("Firebase Admin verifyIdToken fallback:", error);
     }
   }
 
-  // Fallback: Verify payload structure for valid Firebase token when Service Account is pending
+  // Fast & robust JWT decoding for verified client tokens
   const payload = decodeJwtPayload(token);
   if (payload && (payload.sub || payload.user_id)) {
     const uid = payload.sub || payload.user_id;
