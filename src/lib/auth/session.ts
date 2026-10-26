@@ -18,12 +18,15 @@ export async function getSessionUser(req: NextRequest): Promise<AuthenticatedSes
 
   const authHeader = req.headers.get("Authorization");
   if (authHeader && authHeader.startsWith("Bearer ")) {
-    token = authHeader.substring(7);
+    const raw = authHeader.substring(7).trim();
+    if (raw && raw !== "null" && raw !== "undefined") {
+      token = raw;
+    }
   }
 
   if (!token) {
-    const cookieToken = req.cookies.get("lb_session")?.value;
-    if (cookieToken) {
+    const cookieToken = req.cookies.get("lb_session")?.value?.trim();
+    if (cookieToken && cookieToken !== "null" && cookieToken !== "undefined") {
       token = cookieToken;
     }
   }

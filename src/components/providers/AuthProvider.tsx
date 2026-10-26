@@ -19,6 +19,7 @@ interface AuthContextType {
   loading: boolean;
   isGuest: boolean;
   token: string | null;
+  getIdToken: () => Promise<string | null>;
   loginWithEmail: (e: string, p: string) => Promise<void>;
   registerWithEmail: (e: string, p: string, name: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -34,6 +35,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isGuest: false,
   token: null,
+  getIdToken: async () => null,
   loginWithEmail: async () => {},
   registerWithEmail: async () => {},
   loginWithGoogle: async () => {},
@@ -98,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const idToken = await fbUser.getIdToken();
           setToken(idToken);
-          document.cookie = `lb_session=${idToken}; path=/; credentials=include; max-age=86400; SameSite=Lax`;
+          document.cookie = `lb_session=${idToken}; path=/; max-age=86400; SameSite=Lax`;
           await syncProfile(idToken);
         } catch (e) {
           console.error("Error retrieving ID token:", e);
@@ -167,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const cred = await signInWithPopup(auth, googleProvider);
       const idToken = await cred.user.getIdToken();
       setToken(idToken);
-      document.cookie = `lb_session=${idToken}; path=/; credentials=include; max-age=86400; SameSite=Lax`;
+      document.cookie = `lb_session=${idToken}; path=/; max-age=86400; SameSite=Lax`;
       await fetch("/api/auth/sync-user", {
         method: "POST",
         headers: {
@@ -277,13 +279,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const getIdToken = async (): Promise<string | null> => {
+    if (isGuest && token) return token;
+    if (auth.currentUser) {
+      try {
+        const fresh = await auth.currentUser.getIdToken();
+        if (fresh) {
+          setToken(fresh);
+          document.cookie = `lb_session=${fresh}; path=/; max-age=86400; SameSite=Lax`;
+          return fresh;
+        }
+      } catch (err) {
+        console.warn("Error refreshing token from auth.currentUser:", err);
+      }
+    }
+    return token;
+  };
+
   const sendPasswordReset = async (email: string) => {
     await sendPasswordResetEmail(auth, email);
   };
 
   const refreshProfile = async () => {
-    if (token) {
-      await syncProfile(token);
+    const activeToken = (await getIdToken()) || token;
+    if (activeToken) {
+      await syncProfile(activeToken);
     }
   };
 
@@ -295,6 +315,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         isGuest,
         token,
+        getIdToken,
         loginWithEmail,
         registerWithEmail,
         loginWithGoogle,

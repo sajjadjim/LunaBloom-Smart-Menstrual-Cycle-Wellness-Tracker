@@ -36,36 +36,45 @@ export async function POST(req: NextRequest) {
 
     const db = await connectToDatabase();
 
+    const userEmail = (session.email && session.email.trim()) || body.email || `${session.uid}@lunabloom.app`;
+    const userName = (name && name.trim()) || body.name || session.user?.name || userEmail.split("@")[0] || "Bloom User";
+
     if (db) {
-      let user = await UserModel.findOne({ firebaseUid: session.uid });
+      let user = await UserModel.findOne({
+        $or: [
+          { firebaseUid: session.uid },
+          ...(userEmail ? [{ email: userEmail.toLowerCase() }] : []),
+        ],
+      });
 
       if (!user) {
         user = await UserModel.create({
           firebaseUid: session.uid,
-          name: name || session.email.split("@")[0] || "Bloom User",
-          email: session.email,
+          name: userName,
+          email: userEmail.toLowerCase(),
           emailVerified: true,
           dateOfBirth: dateOfBirth || "",
           gender: gender || "Female",
           address: address || "",
           country: country || "",
           timezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-          favoriteMusic: favoriteMusic || [],
-          favoriteFoods: favoriteFoods || [],
-          interests: interests || [],
-          onboardingCompleted: Boolean(onboardingCompleted),
+          favoriteMusic: Array.isArray(favoriteMusic) ? favoriteMusic : [],
+          favoriteFoods: Array.isArray(favoriteFoods) ? favoriteFoods : [],
+          interests: Array.isArray(interests) ? interests : [],
+          onboardingCompleted: onboardingCompleted !== undefined ? Boolean(onboardingCompleted) : false,
         });
       } else {
-        if (name) user.name = name;
-        if (dateOfBirth) user.dateOfBirth = dateOfBirth;
+        user.firebaseUid = session.uid;
+        if (name && name.trim()) user.name = name.trim();
+        if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
         if (gender !== undefined) user.gender = gender;
         if (address !== undefined) user.address = address;
         if (country !== undefined) user.country = country;
         if (timezone) user.timezone = timezone;
-        if (favoriteMusic) user.favoriteMusic = favoriteMusic;
-        if (favoriteFoods) user.favoriteFoods = favoriteFoods;
-        if (interests) user.interests = interests;
-        if (onboardingCompleted !== undefined) user.onboardingCompleted = onboardingCompleted;
+        if (favoriteMusic && Array.isArray(favoriteMusic)) user.favoriteMusic = favoriteMusic;
+        if (favoriteFoods && Array.isArray(favoriteFoods)) user.favoriteFoods = favoriteFoods;
+        if (interests && Array.isArray(interests)) user.interests = interests;
+        if (onboardingCompleted !== undefined) user.onboardingCompleted = Boolean(onboardingCompleted);
         await user.save();
       }
 
@@ -86,24 +95,27 @@ export async function POST(req: NextRequest) {
       }
 
       // Update or create cycle settings
-      if (averageCycleLength || averagePeriodDuration) {
+      if (averageCycleLength !== undefined || averagePeriodDuration !== undefined) {
+        const cycleLen = Math.max(15, Math.min(90, Number(averageCycleLength) || 28));
+        const periodDur = Math.max(2, Math.min(14, Number(averagePeriodDuration) || 5));
         await CycleSettingsModel.findOneAndUpdate(
           { userId: session.uid },
           {
-            averageCycleLength: averageCycleLength || 28,
-            averagePeriodDuration: averagePeriodDuration || 5,
+            averageCycleLength: cycleLen,
+            averagePeriodDuration: periodDur,
           },
           { upsert: true, new: true }
         );
       }
 
       // Update or create notification settings
-      if (reminderOffsets || emailEnabled !== undefined) {
+      if (reminderOffsets !== undefined || emailEnabled !== undefined) {
+        const offsets = Array.isArray(reminderOffsets) ? reminderOffsets.map(Number) : [2];
         await NotificationSettingsModel.findOneAndUpdate(
           { userId: session.uid },
           {
             emailEnabled: Boolean(emailEnabled),
-            reminderOffsets: reminderOffsets || [2],
+            reminderOffsets: offsets,
             consentTimestamp: emailEnabled ? new Date() : undefined,
           },
           { upsert: true, new: true }
@@ -119,15 +131,17 @@ export async function POST(req: NextRequest) {
       // In-memory fallback
       const fallbackUser: IUser = {
         firebaseUid: session.uid,
-        name: name || session.user?.name || session.email.split("@")[0] || "Bloom User",
-        email: session.email,
+        name: userName,
+        email: userEmail.toLowerCase(),
         dateOfBirth: dateOfBirth || session.user?.dateOfBirth || "",
         gender: gender || session.user?.gender || "Female",
+        address: address || session.user?.address || "",
+        country: country || session.user?.country || "",
         timezone: timezone || session.user?.timezone || "UTC",
         favoriteMusic: favoriteMusic || session.user?.favoriteMusic || [],
         favoriteFoods: favoriteFoods || session.user?.favoriteFoods || [],
         interests: interests || session.user?.interests || [],
-        onboardingCompleted: onboardingCompleted !== undefined ? onboardingCompleted : Boolean(session.user?.onboardingCompleted),
+        onboardingCompleted: onboardingCompleted !== undefined ? Boolean(onboardingCompleted) : Boolean(session.user?.onboardingCompleted),
       };
       saveMemoryUser(fallbackUser);
 
@@ -139,6 +153,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Error syncing user";
+    console.error("API /api/auth/sync-user error:", error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
