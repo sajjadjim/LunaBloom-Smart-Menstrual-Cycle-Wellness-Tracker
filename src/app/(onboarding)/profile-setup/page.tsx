@@ -56,7 +56,11 @@ export default function ProfileSetupPage() {
   const [reminderChoice, setReminderChoice] = useState<"2" | "3" | "both" | "none">("both");
   const [discreetMode, setDiscreetMode] = useState(false);
 
-  const calculatedAge = calculateAge(dateOfBirth);
+  const [calculatedAge, setCalculatedAge] = useState(0);
+
+  useEffect(() => {
+    setCalculatedAge(calculateAge(dateOfBirth));
+  }, [dateOfBirth]);
 
   const musicOptions = ["Relaxing", "Pop", "Classical", "Lo-fi", "Romantic", "Instrumental", "Acoustic"];
   const foodOptions = [

@@ -46,7 +46,7 @@ export async function getSessionUser(req: NextRequest): Promise<AuthenticatedSes
     if (db) {
       const userDoc = await UserModel.findOne({ firebaseUid: uid });
       if (userDoc) {
-        user = userDoc.toObject() as IUser;
+        user = (userDoc.toObject() as unknown) as IUser;
       }
     } else {
       user = memoryUsers.get(uid) || null;

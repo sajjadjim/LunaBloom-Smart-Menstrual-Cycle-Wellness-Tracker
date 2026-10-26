@@ -52,6 +52,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const syncProfile = async (idToken: string) => {
     try {
+      await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+
       const res = await fetch("/api/auth/me", {
         headers: { Authorization: `Bearer ${idToken}` },
       });
@@ -261,6 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         await signOut(auth);
       }
+      await fetch("/api/auth/session", { method: "DELETE" }).catch(() => {});
       setUser(null);
       setProfile(null);
       setToken(null);

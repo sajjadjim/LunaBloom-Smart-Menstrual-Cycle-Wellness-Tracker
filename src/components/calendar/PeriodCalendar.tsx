@@ -39,7 +39,11 @@ export function PeriodCalendar({
   onSaveMood,
   onSaveSymptoms,
 }: PeriodCalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date(2026, 9, 1));
+
+  React.useEffect(() => {
+    setCurrentMonth(new Date());
+  }, []);
   const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);

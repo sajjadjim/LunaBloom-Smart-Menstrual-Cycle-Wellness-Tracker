@@ -11,7 +11,11 @@ export default function LogPeriodPage() {
   const { token } = useAuth();
   const { success, error } = useToast();
 
-  const [startDate, setStartDate] = useState(toDateString(new Date()));
+  const [startDate, setStartDate] = useState("2026-10-26");
+
+  useEffect(() => {
+    setStartDate(toDateString(new Date()));
+  }, []);
   const [endDate, setEndDate] = useState("");
   const [flow, setFlow] = useState<FlowLevel>("medium");
   const [notes, setNotes] = useState("");
@@ -21,7 +25,7 @@ export default function LogPeriodPage() {
   const loadPeriods = async () => {
     try {
       const res = await fetch("/api/periods", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: (token ? { Authorization: `Bearer ${token}` } : {}) as HeadersInit,
       });
       if (res.ok) {
         const data = await res.json();
@@ -72,7 +76,7 @@ export default function LogPeriodPage() {
       try {
         const res = await fetch(`/api/periods?startDate=${sDate}`, {
           method: "DELETE",
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          headers: (token ? { Authorization: `Bearer ${token}` } : {}) as HeadersInit,
         });
         if (res.ok) {
           success("Record Deleted", "Removed from your cycle history.");

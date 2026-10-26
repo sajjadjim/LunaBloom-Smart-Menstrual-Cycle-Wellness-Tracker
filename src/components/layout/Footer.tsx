@@ -112,7 +112,7 @@ export function Footer() {
             <strong>Medical Notice:</strong> LunaBloom is an educational tracking and self-care application. Predictions, cycle lengths, and nutrition suggestions are estimates designed for comfort and preparation. LunaBloom does not provide medical advice, diagnose clinical conditions, or serve as a method of contraception. If you experience severe pain, excessive bleeding, or unusual symptoms, please consult a qualified healthcare provider.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-pink-100 dark:border-pink-950/40">
-            <p>© {new Date().getFullYear()} LunaBloom. All rights reserved.</p>
+            <p>© 2026 LunaBloom. All rights reserved.</p>
             <p className="flex items-center gap-1">
               Crafted with <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> for your wellness and peace of mind.
             </p>

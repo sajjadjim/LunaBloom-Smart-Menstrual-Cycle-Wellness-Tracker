@@ -16,7 +16,7 @@ export default function InsightsPage() {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
         const [pRes, mRes, sRes] = await Promise.all([
           fetch("/api/periods", { headers }),

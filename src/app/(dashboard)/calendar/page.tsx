@@ -18,7 +18,7 @@ export default function CalendarPage() {
 
   const loadData = async () => {
     try {
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
       const [pRes, mRes, sRes, predRes] = await Promise.all([
         fetch("/api/periods", { headers }),

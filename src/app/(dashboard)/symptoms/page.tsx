@@ -11,7 +11,11 @@ export default function SymptomsPage() {
   const { token } = useAuth();
   const { success, error } = useToast();
 
-  const [date, setDate] = useState(toDateString(new Date()));
+  const [date, setDate] = useState("2026-10-26");
+
+  useEffect(() => {
+    setDate(toDateString(new Date()));
+  }, []);
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(["Cramps"]);
   const [severity, setSeverity] = useState<SymptomSeverity>("Mild");
   const [notes, setNotes] = useState("");
@@ -35,7 +39,7 @@ export default function SymptomsPage() {
   const loadSymptoms = async () => {
     try {
       const res = await fetch("/api/symptoms", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: (token ? { Authorization: `Bearer ${token}` } : {}) as HeadersInit,
       });
       if (res.ok) {
         const data = await res.json();

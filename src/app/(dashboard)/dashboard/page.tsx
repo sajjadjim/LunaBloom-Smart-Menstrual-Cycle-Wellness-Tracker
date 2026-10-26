@@ -37,7 +37,7 @@ export default function DashboardPage() {
 
     const fetchData = async () => {
       try {
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
         const [predRes, periodRes, moodRes] = await Promise.all([
           fetch("/api/predictions", { headers }),

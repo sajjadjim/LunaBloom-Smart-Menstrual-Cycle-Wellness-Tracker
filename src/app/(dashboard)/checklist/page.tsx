@@ -17,7 +17,7 @@ export default function ChecklistPage() {
   const loadChecklist = async () => {
     try {
       const res = await fetch("/api/checklists", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: (token ? { Authorization: `Bearer ${token}` } : {}) as HeadersInit,
       });
       if (res.ok) {
         const data = await res.json();

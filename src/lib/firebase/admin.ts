@@ -1,25 +1,26 @@
-import * as admin from "firebase-admin";
+import { getApps, initializeApp, cert, App } from "firebase-admin/app";
+import { getAuth, DecodedIdToken } from "firebase-admin/auth";
 
 const projectId = process.env.FIREBASE_PROJECT_ID;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 let privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
 if (privateKey) {
-  // Replace escaped newlines from environment variable
   privateKey = privateKey.replace(/\\n/g, "\n");
 }
 
-let adminApp: admin.app.App | null = null;
+let adminApp: App | null = null;
 
-export function getFirebaseAdmin(): admin.app.App | null {
-  if (admin.apps.length > 0) {
-    return admin.apps[0]!;
+export function getFirebaseAdmin(): App | null {
+  const apps = getApps();
+  if (apps.length > 0) {
+    return apps[0]!;
   }
 
   if (projectId && clientEmail && privateKey) {
     try {
-      adminApp = admin.initializeApp({
-        credential: admin.credential.cert({
+      adminApp = initializeApp({
+        credential: cert({
           projectId,
           clientEmail,
           privateKey,
@@ -35,11 +36,9 @@ export function getFirebaseAdmin(): admin.app.App | null {
   return null;
 }
 
-export async function verifyFirebaseIdToken(token: string): Promise<admin.auth.DecodedIdToken | null> {
+export async function verifyFirebaseIdToken(token: string): Promise<DecodedIdToken | null> {
   const fbAdmin = getFirebaseAdmin();
   if (!fbAdmin) {
-    // If Firebase Admin credentials are not provided in environment,
-    // allow simulated verification for local development/testing if token matches dev format
     if (token.startsWith("dev-mock-token-")) {
       const uid = token.replace("dev-mock-token-", "");
       return {
@@ -53,13 +52,14 @@ export async function verifyFirebaseIdToken(token: string): Promise<admin.auth.D
         iss: "https://securetoken.google.com/lunabloom-app",
         aud: "lunabloom-app",
         firebase: { identities: {}, sign_in_provider: "custom" },
-      } as admin.auth.DecodedIdToken;
+      } as DecodedIdToken;
     }
     return null;
   }
 
   try {
-    const decoded = await fbAdmin.auth().verifyIdToken(token);
+    const auth = getAuth(fbAdmin);
+    const decoded = await auth.verifyIdToken(token);
     return decoded;
   } catch (error) {
     console.error("Firebase ID token verification failed:", error);

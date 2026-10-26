@@ -20,9 +20,9 @@ export async function GET(req: NextRequest) {
 
     const db = await connectToDatabase();
     if (db) {
-      records = await PeriodRecordModel.find({ userId: session.uid })
+      records = (await PeriodRecordModel.find({ userId: session.uid })
         .sort({ startDate: 1 })
-        .lean();
+        .lean()) as unknown as IPeriodRecord[];
 
       const settings = await CycleSettingsModel.findOne({ userId: session.uid }).lean();
       if (settings) {

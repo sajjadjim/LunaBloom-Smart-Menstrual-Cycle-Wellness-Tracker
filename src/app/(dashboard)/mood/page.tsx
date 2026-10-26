@@ -12,7 +12,11 @@ export default function MoodTrackerPage() {
   const { token, profile } = useAuth();
   const { success, error } = useToast();
 
-  const [date, setDate] = useState(toDateString(new Date()));
+  const [date, setDate] = useState("2026-10-26");
+
+  useEffect(() => {
+    setDate(toDateString(new Date()));
+  }, []);
   const [selectedMood, setSelectedMood] = useState<MoodType>("Calm");
   const [notes, setNotes] = useState("");
   const [moods, setMoods] = useState<IMoodRecord[]>([]);
@@ -33,7 +37,7 @@ export default function MoodTrackerPage() {
   const loadMoods = async () => {
     try {
       const res = await fetch("/api/moods", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: (token ? { Authorization: `Bearer ${token}` } : {}) as HeadersInit,
       });
       if (res.ok) {
         const data = await res.json();
